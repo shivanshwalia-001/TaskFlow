@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+    <div class="logo">
+        <div class="logo-circle">
+            ✓
+        </div>
+
+        <div>
+            <h1>TaskFlow</h1>
+            <p>Organize your tasks, boost your productivity</p>
+        </div>
+    </div>
+
+</div>
+<div class="stats">
+
+    <div class="stat-card">
+        <span class="stat-icon">📋</span>
+        <h2 id="totalTasks">0</h2>
+        <p>Total Tasks</p>
+    </div>
+
+    <div class="stat-card">
+        <span class="stat-icon">✅</span>
+        <h2 id="completedTasks">0</h2>
+        <p>Completed</p>
+    </div>
+
+    <div class="stat-card">
+        <span class="stat-icon">⏳</span>
+        <h2 id="pendingTasks">0</h2>
+        <p>Pending</p>
+    </div>
+    <div class="stat-card">
+    <span class="stat-icon">📈</span>
+
+    <h2 id="progressPercent">0%</h2>
+
+    <p>Progress</p>
+
+    <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+    </div>
+
+</div>
+</div>
+
+    <div class="input-section">
+
+       <input type="text" id="taskInput" placeholder="Enter a task">
+
+<!-- <select id="categorySelect">
+
+    <option value="Study">📘 Study</option>
+
+    <option value="Personal">🟢 Personal</option>
+
+    <option value="Work">💼 Work</option>
+
+    </select> -->
+   <div class="custom-select"
+     id="categoryDropdown"
+     data-value="Study">
+
+    <div class="selected-option">
+
+        <span id="selectedCategory">
+    📘 Study
+</span>
+
+        <span class="arrow">▼</span>
+
+    </div>
+
+    <div class="options">
+
+        <div class="option" data-value="Study">
+            📘 Study
+        </div>
+
+        <div class="option" data-value="Personal">
+            🟢 Personal
+        </div>
+
+        <div class="option" data-value="Work">
+            💼 Work
+        </div>
+
+    </div>
+
+</div>
+<input type="date" id="dueDate" onclick="this.showPicker()">
+<select id="prioritySelect">
+
+    <option value="High">🔴 High</option>
+
+    <option value="Medium" selected>🟡 Medium</option>
+
+    <option value="Low">🟢 Low</option>
+
+</select>
+
+<button id="addBtn">Add</button>
+    </div>
+
+    <h2 class="task-heading">📋 Your Tasks</h2>
+    <input
+    type="text"
+    id="searchTask"
+    placeholder="🔍 Search tasks..."
+>
+    <div class="filters">
+
+    <button class="filter-btn active">
+        All
+    </button>
+
+    <button class="filter-btn">
+        Completed
+    </button>
+
+    <button class="filter-btn">
+        Pending
+    </button>
+
+</div>
+
+<ul id="taskList"></ul>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
