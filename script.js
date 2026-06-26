@@ -43,45 +43,13 @@ console.log(dueDate);
     const li = document.createElement("li");
     console.log("Reached li creation");
 
-   li.innerHTML = `
-
-   <div class="task-info">
-
-    <div class="task-top">
-
-        <span class="category-tag ${category.toLowerCase()}">
-            ${category}
-        </span>
-
-        <span class="priority-tag ${priority.toLowerCase()}">
-            ${priority}
-        </span>
-
-    </div>
-
-    <span class="task-text">
-        ${taskText}
-    </span>
-       <span class="due-date" data-date="${dueDate}">
-    ${formattedDate
-    ? `📅 Due: ${formattedDate}`
-    : ""}
-</span>
-
-    </div>
-
-    <div class="actions">
-
-        <button class="complete-btn">
-            ✓
-        </button>
-
-        <button class="delete-btn">
-            🗑
-        </button>
-
-    </div>
-`;
+   li.innerHTML = createTaskCard(
+    taskText,
+    category,
+    priority,
+    dueDate,
+    formattedDate
+);
 
    li.querySelector(".complete-btn")
 .addEventListener("click", function(){
@@ -95,7 +63,25 @@ console.log(dueDate);
    refreshTaskView();
 
 });
+    li.querySelector(".edit-btn")
+.addEventListener("click", function(){
 
+   const taskText = li.querySelector(".task-text");
+
+const currentText = taskText.textContent;
+
+taskText.innerHTML = `
+<input type="text" class="edit-input" value="${currentText}">
+`;
+
+const actions = li.querySelector(".actions");
+
+actions.innerHTML = `
+<button class="save-btn">💾</button>
+<button class="cancel-btn">❌</button>
+`;
+
+});
     li.querySelector(".delete-btn")
     .addEventListener("click", function(){
 
@@ -467,3 +453,51 @@ document.addEventListener("click", function(event){
     }
 
 });
+
+
+
+function createTaskCard(taskText, category, priority, dueDate, formattedDate){
+
+    return `
+    <div class="task-info">
+
+        <div class="task-top">
+
+            <span class="category-tag ${category.toLowerCase()}">
+                ${category}
+            </span>
+
+            <span class="priority-tag ${priority.toLowerCase()}">
+                ${priority}
+            </span>
+
+        </div>
+
+        <span class="task-text">
+            ${taskText}
+        </span>
+
+        <span class="due-date" data-date="${dueDate}">
+            ${formattedDate ? `📅 Due: ${formattedDate}` : ""}
+        </span>
+
+    </div>
+
+    <div class="actions">
+
+        <button class="edit-btn">
+            ✏️
+        </button>
+
+        <button class="complete-btn">
+            ✓
+        </button>
+
+        <button class="delete-btn">
+            🗑
+        </button>
+
+    </div>
+    `;
+
+}
