@@ -135,6 +135,19 @@ min-width:120px;
 
     transition:0.3s;
 }
+.actions button{
+    width:52px;
+    height:52px;
+    min-width:52px;
+    padding:0;
+    border-radius:12px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:20px;
+}
 
 button:hover{
 
@@ -167,16 +180,10 @@ button:hover{
     border-radius:15px;
 
     color:white;
+
     cursor:pointer;
-transition:0.3s;
-}
 
-#taskList li:hover{
-
-    transform:translateY(-4px);
-
-    box-shadow:
-    0 0 20px rgba(59,130,246,0.08);
+    transition:0.3s;
 }
 #taskList li:hover{
     transform:translateY(-3px);
@@ -188,7 +195,8 @@ transition:0.3s;
 
 .actions{
     display:flex;
-    gap:10px;
+    gap:8px;
+    align-items:center;
 }
 
 .complete-btn{
@@ -710,4 +718,70 @@ transition:all .3s ease;
 
     transform:rotate(180deg);
 
+}
+.status-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.status-badge.overdue{
+    background: #ffe5e5;
+    color: #d32f2f;
+}
+
+.status-badge.today{
+    background: #fff4e5;
+    color: #ef6c00;
+}
+
+.status-badge.tomorrow{
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+li.pinned{
+    border: 2px solid gold !important;
+}
+.pin-btn{
+    background:#facc15;
+    color:#1f2937;
+}
+.edit-btn{
+    background:#3b82f6;
+}
+.delete-completed-btn{
+    background:#f59e0b;
+}
+
+.delete-completed-btn:hover{
+    background:#d97706;
+}
+.complete-btn{
+    background:#22c55e;
+}
+
+.complete-btn:hover{
+    background:#16a34a;
+}
+
+.delete-btn{
+    background:#ef4444;
+}
+
+.delete-btn:hover{
+    background:#dc2626;
+}
+
+.edit-btn:hover{
+    background:#2563eb;
+}
+
+.pin-btn:hover{
+    background:#eab308;
 }

@@ -156,6 +156,7 @@ window.onload = function(){
 
         document.querySelectorAll("#taskList li").forEach(li => {
     attachTaskEvents(li);
+    saveTasks();
 });
 
         updateStats();
@@ -331,7 +332,11 @@ function refreshTaskView(){
 
     const completedA = a.classList.contains("completed");
 const completedB = b.classList.contains("completed");
-
+const pinnedA = a.classList.contains("pinned");
+const pinnedB = b.classList.contains("pinned");
+if (pinnedA !== pinnedB) {
+    return pinnedA ? -1 : 1;
+}
 if (completedA !== completedB) {
     return completedA ? 1 : -1;
 }
@@ -470,12 +475,17 @@ function createTaskCard(taskText, category, priority, dueDate, formattedDate){
         </span>
 
         <span class="due-date" data-date="${dueDate}">
-            ${formattedDate ? `📅 Due: ${formattedDate}` : ""}
-        </span>
+    ${formattedDate ? `📅 Due: ${formattedDate}` : ""}
+</span>
+
+${getTaskStatus(dueDate)}
 
     </div>
 
     <div class="actions">
+        <button class="pin-btn">
+    ⭐
+     </button>
 
         <button class="edit-btn">
             ✏️
@@ -484,6 +494,9 @@ function createTaskCard(taskText, category, priority, dueDate, formattedDate){
         <button class="complete-btn">
             ✓
         </button>
+        <button class="delete-completed-btn">
+    🧹
+</button>
 
         <button class="delete-btn">
             🗑
@@ -494,6 +507,17 @@ function createTaskCard(taskText, category, priority, dueDate, formattedDate){
 
 }
 function attachTaskEvents(li){
+    li.querySelector(".pin-btn")
+.addEventListener("click", function(){
+    console.log(li);
+
+  li.classList.toggle("pinned");
+  this.textContent = li.classList.contains("pinned") ? "📌" : "⭐";
+
+refreshTaskView();
+saveTasks();
+
+});
     li.querySelector(".complete-btn")
 .addEventListener("click", function(){
 
@@ -554,6 +578,7 @@ saveBtn.addEventListener("click", function(){
 
     taskText.textContent = newText;
     actions.innerHTML = `
+<button class="pin-btn">⭐</button>
 <button class="edit-btn">✏️</button>
 <button class="complete-btn">✓</button>
 <button class="delete-btn">🗑</button>
@@ -567,16 +592,28 @@ cancelBtn.addEventListener("click", function(){
 
     taskText.textContent = currentText;
 
-    actions.innerHTML = `
-    <button class="edit-btn">✏️</button>
-    <button class="complete-btn">✓</button>
-    <button class="delete-btn">🗑</button>
-    `;
+   actions.innerHTML = `
+<button class="pin-btn">⭐</button>
+<button class="edit-btn">✏️</button>
+<button class="complete-btn">✓</button>
+<button class="delete-btn">🗑</button>
+`;
 
     attachTaskEvents(li);
 
 });
 
+
+});
+li.querySelector(".delete-completed-btn")
+.addEventListener("click", function(){
+
+    document.querySelectorAll("#taskList li.completed").forEach(task => {
+        task.remove();
+    });
+
+    updateStats();
+    saveTasks();
 
 });
 
@@ -587,4 +624,33 @@ li.querySelector(".delete-btn")
 
         updateStats();
     });
+}
+function getTaskStatus(dueDate){
+
+    if(!dueDate){
+        return "";
+    }
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const due = new Date(dueDate);
+    due.setHours(0,0,0,0);
+
+    const difference =
+    Math.floor((due - today) / (1000 * 60 * 60 * 24));
+
+    if(difference < 0){
+        return `<span class="status-badge overdue">🔴 Overdue</span>`;
+    }
+
+    if(difference === 0){
+        return `<span class="status-badge today">🟠 Due Today</span>`;
+    }
+
+    if(difference === 1){
+        return `<span class="status-badge tomorrow">🟢 Due Tomorrow</span>`;
+    }
+
+    return "";
 }
