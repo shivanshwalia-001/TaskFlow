@@ -51,10 +51,44 @@ console.log(dueDate);
     formattedDate
 );
 
-   attachTaskEvents(li);
+   li.querySelector(".complete-btn")
+.addEventListener("click", function(){
 
-    
-    
+    li.classList.toggle("completed");
+
+    updateStats();
+
+    saveTasks();
+
+   refreshTaskView();
+
+});
+    li.querySelector(".edit-btn")
+.addEventListener("click", function(){
+
+   const taskText = li.querySelector(".task-text");
+
+const currentText = taskText.textContent;
+
+taskText.innerHTML = `
+<input type="text" class="edit-input" value="${currentText}">
+`;
+
+const actions = li.querySelector(".actions");
+
+actions.innerHTML = `
+<button class="save-btn">💾</button>
+<button class="cancel-btn">❌</button>
+`;
+
+});
+    li.querySelector(".delete-btn")
+    .addEventListener("click", function(){
+
+        li.remove();
+
+        updateStats();
+    });
 
     document
     .getElementById("taskList")
@@ -65,7 +99,6 @@ saveTasks();
 
     updateStats();
 saveTasks();
-refreshTaskView();
 }
 function updateStats(){
 
@@ -154,9 +187,7 @@ window.onload = function(){
             "taskList"
         ).innerHTML = savedTasks;
 
-        document.querySelectorAll("#taskList li").forEach(li => {
-    attachTaskEvents(li);
-});
+        attachEvents();
 
         updateStats();
     }
@@ -320,30 +351,7 @@ function refreshTaskView(){
     document.querySelectorAll(
         "#taskList li"
     );
-    const taskList = document.getElementById("taskList");
-   const sortedTasks = [...tasks].sort((a, b) => {
-
-    const dateA =
-    a.querySelector(".due-date").dataset.date || "9999-12-31";
-
-    const dateB =
-    b.querySelector(".due-date").dataset.date || "9999-12-31";
-
-    const completedA = a.classList.contains("completed");
-const completedB = b.classList.contains("completed");
-
-if (completedA !== completedB) {
-    return completedA ? 1 : -1;
-}
-
-return new Date(dateA) - new Date(dateB);
-
-});
-sortedTasks.forEach(task => {
-    taskList.appendChild(task);
-});
-
-tasks.forEach(task => {
+    tasks.forEach(task => {
 
     const taskText =
     task.querySelector(
@@ -467,124 +475,4 @@ function createTaskCard(taskText, category, priority, dueDate, formattedDate){
 
         <span class="task-text">
             ${taskText}
-        </span>
-
-        <span class="due-date" data-date="${dueDate}">
-            ${formattedDate ? `📅 Due: ${formattedDate}` : ""}
-        </span>
-
-    </div>
-
-    <div class="actions">
-
-        <button class="edit-btn">
-            ✏️
-        </button>
-
-        <button class="complete-btn">
-            ✓
-        </button>
-
-        <button class="delete-btn">
-            🗑
-        </button>
-
-    </div>
-    `;
-
-}
-function attachTaskEvents(li){
-    li.querySelector(".complete-btn")
-.addEventListener("click", function(){
-
-    li.classList.toggle("completed");
-    const taskList = document.getElementById("taskList");
-
-if (li.classList.contains("completed")) {
-    taskList.appendChild(li);
-} else {
-    taskList.prepend(li);
-}
-
-    updateStats();
-    saveTasks();
-    refreshTaskView();
-
-});
-    li.querySelector(".edit-btn")
-.addEventListener("click", function(){
-
-   const taskText = li.querySelector(".task-text");
-
-const currentText = taskText.textContent;
-
-taskText.innerHTML = `
-<input type="text" class="edit-input" value="${currentText}">
-`;
-
-const actions = li.querySelector(".actions");
-
-actions.innerHTML = `
-<button class="save-btn">💾</button>
-<button class="cancel-btn">❌</button>
-`;
-const saveBtn = li.querySelector(".save-btn");
-
-const cancelBtn = li.querySelector(".cancel-btn");
-const editInput = li.querySelector(".edit-input");
-
-editInput.addEventListener("keydown", function(event){
-
-    if(event.key === "Enter"){
-
-        saveBtn.click();
-
-    }
-    if(event.key === "Escape"){
-
-    cancelBtn.click();
-
-}
-
-});
-saveBtn.addEventListener("click", function(){
-    const editInput = li.querySelector(".edit-input");
-
-    const newText = li.querySelector(".edit-input").value;
-
-    taskText.textContent = newText;
-    actions.innerHTML = `
-<button class="edit-btn">✏️</button>
-<button class="complete-btn">✓</button>
-<button class="delete-btn">🗑</button>
-`;
-
-attachTaskEvents(li);
-saveTasks();
-
-});
-cancelBtn.addEventListener("click", function(){
-
-    taskText.textContent = currentText;
-
-    actions.innerHTML = `
-    <button class="edit-btn">✏️</button>
-    <button class="complete-btn">✓</button>
-    <button class="delete-btn">🗑</button>
-    `;
-
-    attachTaskEvents(li);
-
-});
-
-
-});
-
-li.querySelector(".delete-btn")
-    .addEventListener("click", function(){
-
-        li.remove();
-
-        updateStats();
-    });
-}
+        </sp
