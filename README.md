@@ -95,7 +95,7 @@ TaskFlow/
 └── LICENSE
 ```
 
-This structure reflects the complete source code and project assets.
+The project follows a simple and organized folder structure, making it easy to understand, maintain, and extend.
 
 ## ⚙️ Installation
 
@@ -104,7 +104,7 @@ Follow these steps to run the project locally:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/TaskFlow.git
+git clone https://github.com/shivanshwalia-001/TaskFlow.git
 ```
 
 2. Open the project folder.
