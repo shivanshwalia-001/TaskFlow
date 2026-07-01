@@ -14,9 +14,7 @@ document.getElementById(
     "dueDate"
 ).value;
 const priority =
-document.getElementById(
-    "prioritySelect"
-).value;
+document.getElementById("priorityDropdown").dataset.value;
 
 let formattedDate = "";
 
@@ -34,21 +32,22 @@ if(dueDate){
     );
 }
 
-console.log(dueDate);
+
 
     if(taskText === ""){
         return;
     }
 
     const li = document.createElement("li");
-    console.log("Reached li creation");
 
-   li.innerHTML = createTaskCard(
+
+  li.innerHTML = createTaskCard(
     taskText,
     category,
     priority,
     dueDate,
-    formattedDate
+    formattedDate,
+    false
 );
 
    attachTaskEvents(li);
@@ -57,15 +56,39 @@ console.log(dueDate);
     
 
     document
-    .getElementById("taskList")
-    .appendChild(li);
-    console.log("Task added");
-saveTasks();
-    taskInput.value = "";
+.getElementById("taskList")
+.appendChild(li);
+li.animate(
 
-    updateStats();
+[
+{
+opacity:0,
+transform:"translateY(25px)"
+},
+{
+opacity:1,
+transform:"translateY(0)"
+}
+],
+
+{
+duration:350,
+easing:"ease-out"
+}
+
+);
+
+taskInput.value = "";
+document.getElementById("dueDate").value = "";
+
 saveTasks();
+
+updateStats();
+
 refreshTaskView();
+
+
+showToast("✅ Task Added");
 }
 function updateStats(){
 
@@ -80,94 +103,177 @@ function updateStats(){
     const pending =
     total - completed;
 
-    document.getElementById(
-        "totalTasks"
-    ).textContent = total;
-
-    document.getElementById(
-        "completedTasks"
-    ).textContent = completed;
-
-    document.getElementById(
-        "pendingTasks"
-    ).textContent = pending;
-    const progress =
+  const progress =
 total === 0
 ? 0
 : Math.round((completed / total) * 100);
 
-document.getElementById(
-    "progressPercent"
-).textContent = progress + "%";
+animateCounter(
+"totalTasks",
+total
+);
+
+animateCounter(
+"completedTasks",
+completed
+);
+
+animateCounter(
+"pendingTasks",
+pending
+);
+
+animateCounter(
+"progressPercent",
+progress,
+"%"
+);
+
+
+const fill =
 document.getElementById(
     "progressFill"
-).style.width = progress + "%";
+);
+
+fill.style.transition =
+"width .8s cubic-bezier(.22,.61,.36,1)";
+
+requestAnimationFrame(()=>{
+
+fill.style.width=
+progress+"%";
+
+});
+const emptyState =
+document.getElementById("emptyState");
+
+const taskList =
+document.getElementById("taskList");
+
+if(total === 0){
+
+    emptyState.style.display = "block";
+    taskList.style.display = "none";
+
+}
+else{
+
+emptyState.style.display = "none";
+    taskList.style.display = "block";
+
+}
 }
 function saveTasks(){
 
+    const tasks = [];
+
+    document.querySelectorAll("#taskList li").forEach(li => {
+
+        tasks.push({
+
+            text: li.querySelector(".task-text").textContent,
+
+            category: li.querySelector(".category-tag").textContent.trim(),
+
+            priority: li.querySelector(".priority-tag").textContent.trim(),
+
+           dueDate: li.querySelector(".due-date")
+    ? li.querySelector(".due-date").dataset.date
+    : "",
+
+            completed: li.classList.contains("completed"),
+
+            pinned: li.classList.contains("pinned")
+
+        });
+
+    });
+
     localStorage.setItem(
         "tasks",
-        document.getElementById("taskList").innerHTML
+        JSON.stringify(tasks)
     );
+
 }
-function attachEvents(){
 
-    document
-    .querySelectorAll(".complete-btn")
-    .forEach(button => {
-
-        button.onclick = function(){
-
-            const li =
-            this.closest("li");
-
-            li.classList.toggle(
-                "completed"
-            );
-
-            updateStats();
-            saveTasks();
-        };
-    });
-
-    document
-    .querySelectorAll(".delete-btn")
-    .forEach(button => {
-
-        button.onclick = function(){
-
-            this.closest("li").remove();
-
-            updateStats();
-            saveTasks();
-        };
-    });
-}
 window.onload = function(){
 
-    const savedTasks =
-    localStorage.getItem("tasks");
+    const savedTasks = JSON.parse(
+        localStorage.getItem("tasks")
+    ) || [];
 
-    if(savedTasks){
+    savedTasks.forEach(task => {
 
-        document.getElementById(
-            "taskList"
-        ).innerHTML = savedTasks;
+        const li = document.createElement("li");
 
-        document.querySelectorAll("#taskList li").forEach(li => {
-    attachTaskEvents(li);
-    saveTasks();
-});
+        let formattedDate = "";
 
-        updateStats();
-    }
+        if(task.dueDate){
+
+            formattedDate = new Date(task.dueDate)
+            .toLocaleDateString("en-GB",{
+                day:"numeric",
+                month:"short",
+                year:"numeric"
+            });
+
+        }
+
+       li.innerHTML = createTaskCard(
+    task.text,
+    task.category,
+    task.priority,
+    task.dueDate,
+    formattedDate,
+    task.pinned
+);
+
+        if(task.completed){
+            li.classList.add("completed");
+        }
+
+        if(task.pinned){
+    li.classList.add("pinned");
 }
-document.getElementById("taskInput")
-.addEventListener("keypress", function(event){
 
-    if(event.key === "Enter"){
-        addTask();
+        attachTaskEvents(li);
+
+        document.getElementById("taskList")
+        .appendChild(li);
+
+    });
+
+    updateStats();
+    refreshTaskView();
+
+}
+document.addEventListener("keydown", function(event){
+
+    if(event.key !== "Enter"){
+        return;
     }
+
+    // Don't interfere while editing a task
+    if(document.querySelector(".edit-input")){
+        return;
+    }
+
+    // Don't submit if the user is typing somewhere else
+    const active = document.activeElement;
+
+    if(
+        active.tagName === "TEXTAREA" ||
+        (
+            active.tagName === "INPUT" &&
+            active.id !== "taskInput" &&
+            active.id !== "dueDate"
+        )
+    ){
+        return;
+    }
+
+    event.preventDefault();
+    addTask();
 
 });
 const filterButtons =
@@ -191,7 +297,6 @@ filterButtons.forEach(button => {
                 "active"
             );
 
-           console.log("Button clicked:", this.textContent);
 
 refreshTaskView();
         }
@@ -200,7 +305,7 @@ refreshTaskView();
 });
 function filterTasks(filter){
 
-    console.log("Filter:", filter);
+    
 
     const tasks =
     document.querySelectorAll(
@@ -209,7 +314,7 @@ function filterTasks(filter){
 
     tasks.forEach(task => {
 
-        console.log("Current filter =", filter);
+      
 
 if(filter === "All"){
 
@@ -221,8 +326,7 @@ if(filter === "All"){
             filter === "Completed"
         ){
 
-            console.log(task);
-console.log(task.className);
+            
 
 if(
     task.classList.contains(
@@ -266,13 +370,28 @@ document.getElementById(
     "input",
     refreshTaskView
 );
+document.getElementById("clearAllBtn")
+.addEventListener("click", function(){
+
+    if(confirm("Delete all tasks?")){
+
+        document.getElementById("taskList").innerHTML = "";
+
+       saveTasks();
+updateStats();
+
+showToast("🧹 All Tasks Cleared","#dc2626");
+
+    }
+
+});
 function searchTasks(){
 
     const searchText =
     document.getElementById(
         "searchTask"
     ).value.toLowerCase();
-    console.log("Searching:", searchText);
+    
 
     const tasks =
     document.querySelectorAll(
@@ -290,15 +409,14 @@ if(!taskTextElement){
 
 const taskName =
 taskTextElement.textContent.toLowerCase();
-       console.log(taskName, taskName.includes(searchText));
-
+       
 if(taskName.includes(searchText)){
 task.style.display = "flex";
-console.log("Visible:", taskName);
+
 }
 else{
     task.style.display = "none";
-console.log("Hidden:", taskName);
+
 }
 
     });
@@ -322,23 +440,87 @@ function refreshTaskView(){
         "#taskList li"
     );
     const taskList = document.getElementById("taskList");
+    const today = new Date();
+today.setHours(0,0,0,0);
    const sortedTasks = [...tasks].sort((a, b) => {
 
-    const dateA =
-    a.querySelector(".due-date").dataset.date || "9999-12-31";
+   const dueA =
+a.querySelector(".due-date");
 
-    const dateB =
-    b.querySelector(".due-date").dataset.date || "9999-12-31";
+const dueB =
+b.querySelector(".due-date");
+
+const dateA =
+dueA
+? dueA.dataset.date
+: "9999-12-31";
+
+const dateB =
+dueB
+? dueB.dataset.date
+: "9999-12-31";
 
     const completedA = a.classList.contains("completed");
 const completedB = b.classList.contains("completed");
 const pinnedA = a.classList.contains("pinned");
 const pinnedB = b.classList.contains("pinned");
+const priorityOrder = {
+    High: 1,
+    Medium: 2,
+    Low: 3
+};
+
+const priorityA =
+priorityOrder[
+    a.querySelector(".priority-tag").textContent.trim()
+];
+
+const priorityB =
+priorityOrder[
+    b.querySelector(".priority-tag").textContent.trim()
+];
+
 if (pinnedA !== pinnedB) {
     return pinnedA ? -1 : 1;
 }
+
 if (completedA !== completedB) {
     return completedA ? 1 : -1;
+}
+
+
+
+const diffA =
+Math.floor((new Date(dateA) - today) / (1000*60*60*24));
+
+const diffB =
+Math.floor((new Date(dateB) - today) / (1000*60*60*24));
+
+function urgency(diff){
+
+    if(diff < 0) return 0;   // Overdue
+
+    if(diff === 0) return 1; // Today
+
+    if(diff === 1) return 2; // Tomorrow
+
+    return 3;                // Future
+
+}
+
+const urgencyA = urgency(diffA);
+const urgencyB = urgency(diffB);
+
+if(urgencyA !== urgencyB){
+
+    return urgencyA - urgencyB;
+
+}
+
+if(priorityA !== priorityB){
+
+    return priorityA - priorityB;
+
 }
 
 return new Date(dateA) - new Date(dateB);
@@ -368,6 +550,28 @@ const isCompleted =
 task.classList.contains(
     "completed"
 );
+const dueElement =
+task.querySelector(".due-date");
+
+task.classList.remove("overdue");
+
+if(dueElement){
+
+    const due =
+    new Date(dueElement.dataset.date);
+
+    due.setHours(0,0,0,0);
+
+    if(
+        due < today &&
+        !isCompleted
+    ){
+
+        task.classList.add("overdue");
+
+    }
+
+}
 
 let matchesFilter = false;
 
@@ -407,58 +611,105 @@ else{
 
 
 });
+const visibleTasks =
+document.querySelectorAll(
+    '#taskList li[style*="flex"]'
+).length;
+
+const noSearch =
+document.getElementById(
+    "noSearchResult"
+);
+
+if(
+    visibleTasks === 0 &&
+    searchText !== ""
+){
+
+    noSearch.style.display = "block";
+
+}
+else{
+
+    noSearch.style.display = "none";
 
 }
 
-const categoryDropdown =
-document.getElementById("categoryDropdown");
+}
 
-const selectedOption =
-categoryDropdown.querySelector(".selected-option");
+setupDropdown(
+    "categoryDropdown",
+    "selectedCategory"
+);
 
-const options =
-categoryDropdown.querySelectorAll(".option");
+setupDropdown(
+    "priorityDropdown",
+    "selectedPriority"
+);
 
-selectedOption.addEventListener("click", function () {
+function setupDropdown(dropdownId, textId){
 
-    categoryDropdown.classList.toggle("open");
+    const dropdown =
+    document.getElementById(dropdownId);
 
-});
+    const selected =
+    dropdown.querySelector(".selected-option");
 
-options.forEach(option => {
+    const options =
+    dropdown.querySelectorAll(".option");
 
-    option.addEventListener("click", function () {
+    selected.addEventListener("click", function(){
 
-        document.getElementById(
-            "selectedCategory"
-        ).textContent = this.textContent;
-
-        categoryDropdown.dataset.value =
-        this.dataset.value;
-
-        categoryDropdown.classList.remove("open");
+        dropdown.classList.toggle("open");
 
     });
 
-});
-document.addEventListener("click", function(event){
+    options.forEach(option=>{
 
-    if(!categoryDropdown.contains(event.target)){
+        option.addEventListener("click", function(){
 
-        categoryDropdown.classList.remove("open");
+            document.getElementById(textId)
+            .textContent =
+            this.textContent;
 
-    }
+            dropdown.dataset.value =
+            this.dataset.value;
 
-});
+            dropdown.classList.remove("open");
+
+        });
+
+    });
+
+    document.addEventListener("click", function(e){
+
+        if(!dropdown.contains(e.target)){
+
+            dropdown.classList.remove("open");
+
+        }
+
+    });
+
+}
 
 
 
-function createTaskCard(taskText, category, priority, dueDate, formattedDate){
+function createTaskCard(
+    taskText,
+    category,
+    priority,
+    dueDate,
+    formattedDate,
+    pinned = false
+){
 
     return `
-    <div class="task-info">
+<div class="task-info">
 
-        <div class="task-top">
+    <div class="task-top">
+
+        <div class="badges">
 
             <span class="category-tag ${category.toLowerCase()}">
                 ${category}
@@ -470,58 +721,125 @@ function createTaskCard(taskText, category, priority, dueDate, formattedDate){
 
         </div>
 
-        <span class="task-text">
-            ${taskText}
-        </span>
-
-        <span class="due-date" data-date="${dueDate}">
-    ${formattedDate ? `📅 Due: ${formattedDate}` : ""}
-</span>
-
-${getTaskStatus(dueDate)}
+        ${
+            pinned
+            ? `<span class="pin-indicator">📌 Pinned</span>`
+            : ""
+        }
 
     </div>
 
-    <div class="actions">
-        <button class="pin-btn">
-    ⭐
-     </button>
+    <div class="task-text">
+        ${taskText}
+    </div>
 
-        <button class="edit-btn">
-            ✏️
-        </button>
+   <div class="task-bottom">
 
-        <button class="complete-btn">
-            ✓
-        </button>
-        <button class="delete-completed-btn">
-    🧹
-</button>
+    <div class="task-meta">
 
-        <button class="delete-btn">
-            🗑
-        </button>
+        ${
+            formattedDate
+            ? `<span class="due-date" data-date="${dueDate}">
+                    📅 ${formattedDate}
+               </span>`
+            : ""
+        }
+
+        ${getTaskStatus(dueDate)}
+
+        <div class="actions">
+
+            <button class="pin-btn">
+                ${pinned ? "📌" : "⭐"}
+            </button>
+
+            <button class="edit-btn">
+                ✏️
+            </button>
+
+            <button class="complete-btn">
+                ✓
+            </button>
+
+            <button class="delete-completed-btn">
+                🧹
+            </button>
+
+            <button class="delete-btn">
+                🗑
+            </button>
+
+        </div>
 
     </div>
-    `;
+
+</div>
+
+</div>
+`;
 
 }
 function attachTaskEvents(li){
     li.querySelector(".pin-btn")
 .addEventListener("click", function(){
-    console.log(li);
+    
 
   li.classList.toggle("pinned");
+  this.animate(
+
+[
+{
+transform:"scale(1)"
+},
+{
+transform:"scale(1.35)"
+},
+{
+transform:"scale(1)"
+}
+],
+
+{
+duration:250
+}
+
+);
   this.textContent = li.classList.contains("pinned") ? "📌" : "⭐";
 
 refreshTaskView();
 saveTasks();
+
+showToast(
+    li.classList.contains("pinned")
+    ? "📌 Task Pinned"
+    : "⭐ Task Unpinned",
+    "#f59e0b"
+);
 
 });
     li.querySelector(".complete-btn")
 .addEventListener("click", function(){
 
     li.classList.toggle("completed");
+    li.animate(
+
+[
+{
+transform:"scale(1)"
+},
+{
+transform:"scale(.97)"
+},
+{
+transform:"scale(1)"
+}
+],
+
+{
+duration:250
+}
+
+);
     const taskList = document.getElementById("taskList");
 
 if (li.classList.contains("completed")) {
@@ -530,9 +848,16 @@ if (li.classList.contains("completed")) {
     taskList.prepend(li);
 }
 
-    updateStats();
-    saveTasks();
-    refreshTaskView();
+   updateStats();
+saveTasks();
+refreshTaskView();
+
+showToast(
+    li.classList.contains("completed")
+    ? "✅ Task Completed"
+    : "↩️ Task Restored",
+    "#22c55e"
+);
 
 });
     li.querySelector(".edit-btn")
@@ -540,10 +865,16 @@ if (li.classList.contains("completed")) {
 
    const taskText = li.querySelector(".task-text");
 
-const currentText = taskText.textContent;
+const currentText =
+taskText.textContent.trim();
 
 taskText.innerHTML = `
-<input type="text" class="edit-input" value="${currentText}">
+<input
+type="text"
+class="edit-input"
+value="${currentText}"
+spellcheck="false"
+autocomplete="off">
 `;
 
 const actions = li.querySelector(".actions");
@@ -555,8 +886,15 @@ actions.innerHTML = `
 const saveBtn = li.querySelector(".save-btn");
 
 const cancelBtn = li.querySelector(".cancel-btn");
-const editInput = li.querySelector(".edit-input");
+const editInput = li.querySelector(".edit-input");  
+setTimeout(() => {
 
+    editInput.focus();
+
+    editInput.setSelectionRange(0, 0);
+
+}, 0);
+  
 editInput.addEventListener("keydown", function(event){
 
     if(event.key === "Enter"){
@@ -574,18 +912,27 @@ editInput.addEventListener("keydown", function(event){
 saveBtn.addEventListener("click", function(){
     const editInput = li.querySelector(".edit-input");
 
-    const newText = li.querySelector(".edit-input").value;
+    const newText = editInput.value.trim();
+
+if(newText === ""){
+    showToast("⚠️ Task cannot be empty","#ef4444");
+    return;
+}
 
     taskText.textContent = newText;
-    actions.innerHTML = `
-<button class="pin-btn">⭐</button>
+
+actions.innerHTML = `
+<button class="pin-btn">${li.classList.contains("pinned") ? "📌" : "⭐"}</button>
 <button class="edit-btn">✏️</button>
 <button class="complete-btn">✓</button>
+<button class="delete-completed-btn">🧹</button>
 <button class="delete-btn">🗑</button>
 `;
 
 attachTaskEvents(li);
 saveTasks();
+
+showToast("✏️ Task Updated","#3b82f6");
 
 });
 cancelBtn.addEventListener("click", function(){
@@ -593,13 +940,15 @@ cancelBtn.addEventListener("click", function(){
     taskText.textContent = currentText;
 
    actions.innerHTML = `
-<button class="pin-btn">⭐</button>
+<button class="pin-btn">${li.classList.contains("pinned") ? "📌" : "⭐"}</button>
 <button class="edit-btn">✏️</button>
 <button class="complete-btn">✓</button>
+<button class="delete-completed-btn">🧹</button>
 <button class="delete-btn">🗑</button>
 `;
 
     attachTaskEvents(li);
+    saveTasks();
 
 });
 
@@ -608,6 +957,10 @@ cancelBtn.addEventListener("click", function(){
 li.querySelector(".delete-completed-btn")
 .addEventListener("click", function(){
 
+    if(!confirm("Delete all completed tasks?")){
+        return;
+    }
+
     document.querySelectorAll("#taskList li.completed").forEach(task => {
         task.remove();
     });
@@ -615,15 +968,103 @@ li.querySelector(".delete-completed-btn")
     updateStats();
     saveTasks();
 
+    showToast(
+        "🧹 Completed Tasks Deleted",
+        "#ea580c"
+    );
+
 });
-
 li.querySelector(".delete-btn")
-    .addEventListener("click", function(){
+.addEventListener("click", function(){
 
-        li.remove();
+    const confirmDelete = confirm(
+        "Delete this task?"
+    );
 
-        updateStats();
-    });
+    if(!confirmDelete){
+        return;
+    }
+
+li.style.transition =
+"all .35s ease";
+
+li.style.opacity = "0";
+
+li.style.transform =
+"translateX(60px) scale(.9)";
+
+setTimeout(()=>{
+
+    li.remove();
+
+    updateStats();
+
+    saveTasks();
+
+},350);
+
+showToast("🗑 Task Deleted","#ef4444");
+
+});
+}
+function animateCounter(id,target,suffix=""){
+
+const element=
+document.getElementById(id);
+
+const start=
+parseInt(element.textContent)||0;
+
+const duration=500;
+
+const startTime=
+performance.now();
+
+function update(now){
+
+const progress=
+Math.min(
+(now-startTime)/duration,
+1
+);
+
+const value=Math.round(
+
+start+
+(target-start)*progress
+
+);
+
+element.textContent=
+value+suffix;
+
+if(progress<1){
+
+requestAnimationFrame(update);
+
+}
+
+}
+
+requestAnimationFrame(update);
+
+}
+function showToast(message, color = "#22c55e"){
+
+    const toast = document.getElementById("toast");
+
+    toast.textContent = message;
+
+    toast.style.background = color;
+
+    toast.classList.add("show");
+
+    setTimeout(() => {
+
+        toast.classList.remove("show");
+
+    },2000);
+
 }
 function getTaskStatus(dueDate){
 
@@ -654,3 +1095,14 @@ function getTaskStatus(dueDate){
 
     return "";
 }
+window.addEventListener("beforeunload", function(event){
+
+    if(document.querySelector(".edit-input")){
+
+        event.preventDefault();
+
+        event.returnValue = "";
+
+    }
+
+});
